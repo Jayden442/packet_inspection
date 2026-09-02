@@ -3,7 +3,7 @@ from scapy.layers.inet import IP, Ether, TCP, UDP, ICMP
 from scapy.layers.inet6 import IPv6
 from datetime import datetime
 
-def process_packet(packet):
+def analyze_packet(packet):
     src_mac = None
     dst_mac = None
     src_ip = None
@@ -15,7 +15,9 @@ def process_packet(packet):
     tcp_flags = None
     icmp_type = None
     icmp_code = None
-    if IP in packet:
+    if IP not in packet and IPv6 not in packet:
+        return None
+    elif IP in packet:
         src_ip = packet[IP].src
         dst_ip = packet[IP].dst
         ip_version = 4
