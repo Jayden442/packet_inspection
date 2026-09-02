@@ -1,10 +1,9 @@
 from packet_info import PacketInfo
 from statistics import TrafficStatistics
 
-PORT_SCAN_THRESHOLD = 100
 
 class Detector:
-    def __init__(self, threshold=PORT_SCAN_THRESHOLD):
+    def __init__(self, threshold):
         self.threshold = threshold
         self.port_scan_ips = set()
 
@@ -14,5 +13,5 @@ class Detector:
             if source_ip.get_dest_port_count() > self.threshold:
                 if source_ip.ip_address not in self.port_scan_ips:
                     self.port_scan_ips.add(source_ip.ip_address)
-                    alerts.append(f"Port scan detected from {source_ip.ip_address}")
+                    alerts.append(f"Port scan detected from {source_ip.ip_address}\n")
         return alerts

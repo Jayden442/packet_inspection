@@ -19,7 +19,7 @@ class SourceIP:
         self.packets.append(packet_info)
 
     def add_dest(self, packet_info: PacketInfo):
-        if packet_info.dst_port not in self.dest_ports:
+        if packet_info.dst_port not in self.dest_ports and packet_info.dst_port is not None:
             self.dest_ports[packet_info.dst_port] = packet_info.timestamp
 
     def remove_outdated_packets(self, time_window):
