@@ -32,6 +32,7 @@ def analyze_packet(packet):
         protocol = 'TCP'
         src_port = packet[TCP].sport
         dst_port = packet[TCP].dport
+        tcp_flags = packet[TCP].flags
     elif UDP in packet:
         protocol = 'UDP'
         src_port = packet[UDP].sport
