@@ -21,3 +21,7 @@ class PacketInfo:
 
     icmp_type: int | None = None
     icmp_code: int | None = None
+    
+    dns_query: str | None = None
+    dns_query_length: int | None = None
+    dns_is_response: bool | None = None
