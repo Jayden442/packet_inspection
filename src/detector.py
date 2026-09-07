@@ -54,6 +54,3 @@ class Detector:
 
     def get_alerts(self):
         return self.alerts
-
-
-        

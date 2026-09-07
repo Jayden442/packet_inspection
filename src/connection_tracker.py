@@ -115,4 +115,3 @@ class ConnectionTracker:
         elif 'A' in flags and not 'S' in flags:
             if self.get_connection_state(src_ip, src_port, dst_ip, dst_port) == ConnectionState.SYN_ACK_RECEIVED:
                 self.update_connection(src_ip, src_port, dst_ip, dst_port, ack_received=True)
-
