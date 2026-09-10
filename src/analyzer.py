@@ -1,5 +1,5 @@
 from packet_info import PacketInfo
-from scapy.layers.inet import IP, Ether, TCP, UDP, ICMP
+from scapy.layers.inet import IP, Ether, TCP, UDP, ICMP, DNS, DNSQR
 from scapy.layers.inet6 import IPv6
 from datetime import datetime
 
@@ -15,6 +15,22 @@ def analyze_packet(packet):
     tcp_flags = None
     icmp_type = None
     icmp_code = None
+    dns_is_response = None
+    dns_query = None
+    dns_query_length = None
+    if packet.haslayer(DNS):
+        dns = packet[DNS]
+
+        dns_is_response = bool(dns.qr)
+
+        if packet.haslayer(DNSQR):
+            query = packet[DNSQR].qname
+
+            if isinstance(query, bytes):
+                query = query.decode(errors="replace")
+
+            dns_query = query
+            dns_query_length = len(query)
     if IP not in packet and IPv6 not in packet:
         return None
     elif IP in packet:
@@ -52,5 +68,8 @@ def analyze_packet(packet):
         dst_port=dst_port,
         tcp_flags=tcp_flags,
         icmp_type=icmp_type,
-        icmp_code=icmp_code
+        icmp_code=icmp_code,
+        dns_is_response=dns_is_response,
+        dns_query=dns_query,
+        dns_query_length=dns_query_length
     )
