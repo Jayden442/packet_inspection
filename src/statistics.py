@@ -2,21 +2,34 @@ from packet_info import PacketInfo
 from collections import deque
 from source_ip import SourceIP
 import time
+import math
 
+# DNS Stats for a specific source IP
 class DNSStatistics:
-    def __init__(self, ip):
+    def __init__(self, time_window=10):
         self.query_count = 0
         self.total_query_length = 0
         self.unique_subdomains = set()
-        self.total_entropy = 0.0
+        self.total_subdomain_entropy = 0.0
+        self.packet_info_list = deque()
+        self.time_window = time_window
 
-    def add_dest(self, packet_info):
+    def add_packet(self, packet_info):
         if packet_info.dns_is_response:
             return
         
         if not packet_info.dns_query:
             return
-        query = packet_info.dns_query.rstrip(".")
+        self.packet_info_list.append(packet_info)
+    
+    def remove_outdated_packets(self):
+        cur_time = time.time()
+        while (self.packets and cur_time - self.packets[0].timestamp > self.time_window):
+            self.total_query_length -= len(self.packet_info_list[0].dns_query)
+            self.query_count -= 1
+            self.total_subdomain_entropy -= self.calculate_entropy(self.get_subdomain(self.packet_info_list[0].dns_query))
+            self.packet_info_list.popleft()
+
 
     def update(self, packet_info):
         # Only track DNS queries, not responses
@@ -55,8 +68,17 @@ class DNSStatistics:
             return None
 
         return ".".join(parts[:-2])
+    def calculate_entropy(self, subdomain):
+        freq_dict = {}
+        entropy = 0.0
+        for char in subdomain:
+            freq_dict[char] = freq_dict.get(char, 0) + 1
+        for c in len(freq_dict):
+            freq_dict[c] /= len(subdomain)
+            entropy -= freq_dict[c] * math.log2(freq_dict[c])
+        return entropy
+            
 
-        
 
 class TrafficStatistics:
     def __init__(self,time_window=10):
@@ -78,6 +100,8 @@ class TrafficStatistics:
         self.ips[ip].add_dest(packet_info)
         if ip not in self.dns_statistics:
             self.dns_statistics[ip] = DNSStatistics()
+        else:
+            self.dns_statistics[ip].add_packet(packet_info)
         self.remove_outdated_packets()
 
     def remove_outdated_packets(self):
