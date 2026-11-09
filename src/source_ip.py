@@ -12,6 +12,8 @@ class SourceIP:
         self.last_seen = None
 
     def update(self, packet_info: PacketInfo):
+        if not packet_info:
+            return
         self.packet_count += 1
         if self.first_seen is None:
             self.first_seen = packet_info.timestamp
@@ -19,6 +21,8 @@ class SourceIP:
         self.packets.append(packet_info)
 
     def add_dest(self, packet_info: PacketInfo):
+        if not packet_info:
+            return
         if packet_info.dst_port not in self.dest_ports and packet_info.dst_port is not None:
             self.dest_ports[packet_info.dst_port] = packet_info.timestamp
 

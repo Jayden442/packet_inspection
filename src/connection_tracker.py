@@ -96,6 +96,8 @@ class ConnectionTracker:
             del self.connections[key]
 
     def process_packet(self, packet_info):
+        if not packet_info:
+            return
         self.expire_connections(packet_info.timestamp)
         if packet_info.protocol != 'TCP':
             return

@@ -1,6 +1,7 @@
 from packet_info import PacketInfo
-from scapy.layers.inet import IP, Ether, TCP, UDP, ICMP, DNS, DNSQR
+from scapy.layers.inet import IP, Ether, TCP, UDP, ICMP
 from scapy.layers.inet6 import IPv6
+from scapy.layers.dns import DNS
 from datetime import datetime
 
 def analyze_packet(packet):

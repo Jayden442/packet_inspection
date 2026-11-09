@@ -1,9 +1,12 @@
 from alert import Alert
-from statistics import TrafficStatistics
+from statistics import TrafficStatistics, DNSStatistics
 from connection_tracker import ConnectionTracker, ConnectionState
 
-MIN_CONNECTIONS = 100
-FLOOD_RATIO = 0.80
+CONNECTION_THRESHOLD = 100
+QUERY_THRESHOLD = 50
+AVG_QUERY_LEN_THRESHOLD = 50
+UNIQUE_SUBDOMAINS_THRESHOLD = 40
+AVG_ENTROPY_THRESHOLD = 3.0
 
 
 class Detector:
@@ -44,13 +47,28 @@ class Detector:
         total_syn_ack = current_syn_ack + incomplete_syn_ack
         total_count = established + total_syn_ack
 
-        if total_syn_ack / total_count > FLOOD_RATIO:
+        if total_count > 0 and total_syn_ack / total_count > self.syn_flood_threshold and total_count >= CONNECTION_THRESHOLD:
             alert = Alert(
                 alert_type="SYN Flood",
                 description=f"{total_syn_ack} SYN-ACK flags compared to {established} established connections recently",
                 packet_info=None
             )
             self.alerts.append(alert)
+            
+    def detect_dns_tunneling(self, statistics: TrafficStatistics):
+        for ip, dns_stats in statistics.dns_statistics:
+            if (
+                dns_stats.query_count >= QUERY_THRESHOLD 
+                and dns_stats.average_subdomain_entropy >= AVG_ENTROPY_THRESHOLD
+                and dns_stats.average_query_length >= AVG_QUERY_LEN_THRESHOLD
+                and dns_stats.unique_subdomains >= UNIQUE_SUBDOMAINS_THRESHOLD
+            ):
+                alert = Alert(
+                    alert_type="DNS Tunnelling",
+                    description=f"Potential DNS Tunnelling attempt by ip address {ip}",
+                    packet_info=None
+                )
+                self.alerts.append(alert)
 
     def get_alerts(self):
         return self.alerts

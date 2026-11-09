@@ -1,5 +1,5 @@
 from packet_info import PacketInfo
-from collections import deque
+from collections import deque, Counter
 from source_ip import SourceIP
 import time
 import math
@@ -9,12 +9,15 @@ class DNSStatistics:
     def __init__(self, time_window=10):
         self.query_count = 0
         self.total_query_length = 0
-        self.unique_subdomains = set()
+        self.subdomain_counter = Counter()
         self.total_subdomain_entropy = 0.0
         self.packet_info_list = deque()
         self.time_window = time_window
 
     def add_packet(self, packet_info):
+        if not packet_info: 
+            return
+        
         if packet_info.dns_is_response:
             return
         
@@ -25,13 +28,19 @@ class DNSStatistics:
     def remove_outdated_packets(self):
         cur_time = time.time()
         while (self.packets and cur_time - self.packets[0].timestamp > self.time_window):
-            self.total_query_length -= len(self.packet_info_list[0].dns_query)
+            last_packet = self.packet_info_list[0]
+            self.total_query_length -= len(last_packet.dns_query)
             self.query_count -= 1
-            self.total_subdomain_entropy -= self.calculate_entropy(self.get_subdomain(self.packet_info_list[0].dns_query))
+            subdomain = self.get_subdomain(last_packet.dns_query)
+            self.total_subdomain_entropy -= self.calculate_entropy(subdomain)
+            self.subdomain_counter[subdomain] -= 1
+            if self.subdomain_counter[subdomain] == 0:
+                del self.subdomain_counter[subdomain]
             self.packet_info_list.popleft()
 
-
     def update(self, packet_info):
+        if not packet_info:
+            return
         # Only track DNS queries, not responses
         if packet_info.dns_is_response:
             return
@@ -43,14 +52,12 @@ class DNSStatistics:
 
         self.query_count += 1
         self.total_query_length += len(query)
-
         subdomain = self.get_subdomain(query)
-
         if subdomain:
-            self.unique_subdomains.add(subdomain)
-
+            self.subdomain_counter[subdomain] += 1
             entropy = self.calculate_entropy(subdomain)
             self.total_subdomain_entropy += entropy
+
     @property
     def average_subdomain_entropy(self):
         if self.query_count == 0:
@@ -77,6 +84,17 @@ class DNSStatistics:
             freq_dict[c] /= len(subdomain)
             entropy -= freq_dict[c] * math.log2(freq_dict[c])
         return entropy
+
+    @property
+    def average_query_length(self):
+        if self.query_count == 0:
+            return 0
+        return self.total_query_length / self.query_count
+    
+    @property
+    def unique_subdomains(self):
+        return len(self.subdomain_counter)
+
             
 
 
