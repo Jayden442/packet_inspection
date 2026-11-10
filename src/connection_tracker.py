@@ -34,6 +34,15 @@ class ConnectionTracker:
     def add_connection(self, connection: Connection):
         key = (connection.src_ip, connection.src_port, connection.dst_ip, connection.dst_port)
         self.connections[key] = connection
+    
+    def update_activity(self, src_ip: str, src_port: int, dst_ip: str, dst_port: int, timestamp=None):
+        key = (src_ip, src_port, dst_ip, dst_port)
+        if key in self.connections and timestamp is not None:
+            self.connections[key].last_activity = timestamp
+        else:
+            reverse_key = (dst_ip, dst_port, src_ip, src_port)
+            if reverse_key in self.connections and timestamp is not None:
+                self.connections[reverse_key].last_activity = timestamp
 
     def update_connection(self, src_ip: str, src_port: int, dst_ip: str, dst_port: int, syn_received=False, syn_ack_received=False, ack_received=False, timestamp=None):
         key = (src_ip, src_port, dst_ip, dst_port)
@@ -55,7 +64,8 @@ class ConnectionTracker:
         if ack_received and connection.state == ConnectionState.SYN_ACK_RECEIVED:
             connection.ack_received = True
             connection.state = ConnectionState.ESTABLISHED
-        connection.last_activity = timestamp
+        if timestamp is not None:
+            connection.last_activity = timestamp
 
     def remove_connection(self, src_ip: str, src_port: int, dst_ip: str, dst_port: int):
         key = (src_ip, src_port, dst_ip, dst_port)
@@ -117,3 +127,5 @@ class ConnectionTracker:
         elif 'A' in flags and not 'S' in flags:
             if self.get_connection_state(src_ip, src_port, dst_ip, dst_port) == ConnectionState.SYN_ACK_RECEIVED:
                 self.update_connection(src_ip, src_port, dst_ip, dst_port, ack_received=True, timestamp=packet_info.timestamp)
+        else:
+            self.update_activity(src_ip, src_port, dst_ip, dst_port, timestamp=packet_info.timestamp)
