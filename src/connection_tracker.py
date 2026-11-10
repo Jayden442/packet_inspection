@@ -82,12 +82,12 @@ class ConnectionTracker:
         expired = []
 
         # cleanup incomplete connections first
-        while self.incomplete_connections and self.incomplete_connections[0].expired_at and current_time - self.incomplete_connections[0].expired_at > self.connection_timeout * 2:
+        while self.incomplete_connections and self.incomplete_connections[0].expired_at and current_time - self.incomplete_connections[0].expired_at > self.timeout * 2:
             self.incomplete_connections.popleft()
 
         for key, connection in self.connections.items():
             if connection.state != ConnectionState.ESTABLISHED:
-                if current_time - connection.last_activity > self.connection_timeout:
+                if current_time - connection.last_activity > self.timeout:
                     expired.append(key)
                     self.connections[key].expired_at = current_time
 
