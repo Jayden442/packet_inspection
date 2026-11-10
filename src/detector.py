@@ -56,7 +56,7 @@ class Detector:
             self.alerts.append(alert)
             
     def detect_dns_tunneling(self, statistics: TrafficStatistics):
-        for ip, dns_stats in statistics.dns_statistics:
+        for ip, dns_stats in statistics.dns_statistics.items():
             if (
                 dns_stats.query_count >= QUERY_THRESHOLD 
                 and dns_stats.average_subdomain_entropy >= AVG_ENTROPY_THRESHOLD

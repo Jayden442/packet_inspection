@@ -24,18 +24,21 @@ class DNSStatistics:
         if not packet_info.dns_query:
             return
         self.packet_info_list.append(packet_info)
+        self.update(packet_info)
     
     def remove_outdated_packets(self):
         cur_time = time.time()
-        while (self.packets and cur_time - self.packets[0].timestamp > self.time_window):
+        while (self.packet_info_list and cur_time - self.packet_info_list[0].timestamp > self.time_window):
             last_packet = self.packet_info_list[0]
-            self.total_query_length -= len(last_packet.dns_query)
+            query = last_packet.dns_query.rstrip(".")
+            self.total_query_length -= len(query)
             self.query_count -= 1
-            subdomain = self.get_subdomain(last_packet.dns_query)
-            self.total_subdomain_entropy -= self.calculate_entropy(subdomain)
-            self.subdomain_counter[subdomain] -= 1
-            if self.subdomain_counter[subdomain] == 0:
-                del self.subdomain_counter[subdomain]
+            subdomain = self.get_subdomain(query)
+            if subdomain:
+                self.total_subdomain_entropy -= self.calculate_entropy(subdomain)
+                self.subdomain_counter[subdomain] -= 1
+                if self.subdomain_counter[subdomain] == 0:
+                    del self.subdomain_counter[subdomain]
             self.packet_info_list.popleft()
 
     def update(self, packet_info):
@@ -76,13 +79,15 @@ class DNSStatistics:
 
         return ".".join(parts[:-2])
     def calculate_entropy(self, subdomain):
+        if not subdomain:
+            return 0
         freq_dict = {}
         entropy = 0.0
         for char in subdomain:
             freq_dict[char] = freq_dict.get(char, 0) + 1
-        for c in len(freq_dict):
-            freq_dict[c] /= len(subdomain)
-            entropy -= freq_dict[c] * math.log2(freq_dict[c])
+        for count in freq_dict.values():
+            probability = count / len(subdomain)
+            entropy -= probability * math.log2(probability)
         return entropy
 
     @property
@@ -111,15 +116,15 @@ class TrafficStatistics:
         self.packets.append(packet_info)
         ip = packet_info.src_ip
         if ip is None:
+            self.remove_outdated_packets()
             return
         if ip not in self.ips:
             self.ips[ip] = SourceIP(ip)
         self.ips[ip].update(packet_info)
         self.ips[ip].add_dest(packet_info)
         if ip not in self.dns_statistics:
-            self.dns_statistics[ip] = DNSStatistics()
-        else:
-            self.dns_statistics[ip].add_packet(packet_info)
+            self.dns_statistics[ip] = DNSStatistics(time_window=self.time_window)
+        self.dns_statistics[ip].add_packet(packet_info)
         self.remove_outdated_packets()
 
     def remove_outdated_packets(self):
@@ -136,6 +141,8 @@ class TrafficStatistics:
             source_ip.remove_outdated_packets(self.time_window)
             if source_ip.packet_count == 0:
                 del self.ips[ip]
+        for dns_stats in self.dns_statistics.values():
+            dns_stats.remove_outdated_packets()
 
     def get_num_packets(self):
         self.remove_outdated_packets()

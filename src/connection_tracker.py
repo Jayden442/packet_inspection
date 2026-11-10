@@ -84,6 +84,8 @@ class ConnectionTracker:
 
     def get_connection_state(self, src_ip: str, src_port: int, dst_ip: str, dst_port: int):
         connection = self.get_connection(src_ip, src_port, dst_ip, dst_port)
+        if connection is None:
+            connection = self.connections.get((dst_ip, dst_port, src_ip, src_port))
         if connection:
             return connection.state
         return None
