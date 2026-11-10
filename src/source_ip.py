@@ -19,6 +19,7 @@ class SourceIP:
             self.first_seen = packet_info.timestamp
         self.last_seen = packet_info.timestamp
         self.packets.append(packet_info)
+        self.add_dest(packet_info)
 
     def add_dest(self, packet_info: PacketInfo):
         if not packet_info:
