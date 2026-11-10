@@ -35,7 +35,7 @@ class ConnectionTracker:
         key = (connection.src_ip, connection.src_port, connection.dst_ip, connection.dst_port)
         self.connections[key] = connection
 
-    def update_connection(self, src_ip: str, src_port: int, dst_ip: str, dst_port: int, syn_received=False, syn_ack_received=False, ack_received=False):
+    def update_connection(self, src_ip: str, src_port: int, dst_ip: str, dst_port: int, syn_received=False, syn_ack_received=False, ack_received=False, timestamp=None):
         key = (src_ip, src_port, dst_ip, dst_port)
         reverse_key = (dst_ip, dst_port, src_ip, src_port)
         if key in self.connections:
@@ -55,6 +55,7 @@ class ConnectionTracker:
         if ack_received and connection.state == ConnectionState.SYN_ACK_RECEIVED:
             connection.ack_received = True
             connection.state = ConnectionState.ESTABLISHED
+        connection.last_activity = timestamp
 
     def remove_connection(self, src_ip: str, src_port: int, dst_ip: str, dst_port: int):
         key = (src_ip, src_port, dst_ip, dst_port)
@@ -108,11 +109,11 @@ class ConnectionTracker:
         dst_port = packet_info.dst_port
         flags = packet_info.tcp_flags
         if 'S' in flags and not 'A' in flags:
-            connection = Connection(src_ip, src_port, dst_ip, dst_port, start_time=packet_info.timestamp)
+            connection = Connection(src_ip, src_port, dst_ip, dst_port, start_time=packet_info.timestamp, last_activity=packet_info.timestamp)
             self.add_connection(connection)
         elif 'S' in flags and 'A' in flags:
             if self.get_connection_state(src_ip, src_port, dst_ip, dst_port) == ConnectionState.SYN_SENT:
-                self.update_connection(src_ip, src_port, dst_ip, dst_port, syn_ack_received=True)
+                self.update_connection(src_ip, src_port, dst_ip, dst_port, syn_ack_received=True, timestamp=packet_info.timestamp)
         elif 'A' in flags and not 'S' in flags:
             if self.get_connection_state(src_ip, src_port, dst_ip, dst_port) == ConnectionState.SYN_ACK_RECEIVED:
-                self.update_connection(src_ip, src_port, dst_ip, dst_port, ack_received=True)
+                self.update_connection(src_ip, src_port, dst_ip, dst_port, ack_received=True, timestamp=packet_info.timestamp)
