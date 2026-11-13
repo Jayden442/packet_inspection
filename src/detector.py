@@ -1,6 +1,8 @@
-from .alert import Alert
+from .alert import Alert, Severity
 from .statistics import TrafficStatistics, DNSStatistics
 from .connection_tracker import ConnectionTracker, ConnectionState
+from .storage.database import save_alert
+from time import datetime
 
 CONNECTION_THRESHOLD = 100
 QUERY_THRESHOLD = 50
@@ -25,9 +27,15 @@ class Detector:
                     alert = Alert(
                         alert_type="Port Scan",
                         description=f"{num_ports} unique destination ports accessed by {source_ip.ip_address}",
-                        packet_info=None
+                        packet_info=None,
+                        timestamp=datetime.now(),
+                        source_ip=source_ip.ip_address,
+                        dest_ip=None,
+                        severity=Severity.MEDIUM,
                     )
                     self.alerts.append(alert)
+                    if not self.is_duplicate_alert(alert):
+                        save_alert(alert)
 
     def detect_syn_flood(self, connection_tracker: ConnectionTracker):
         valid_connections = connection_tracker.get_current_connections()
@@ -51,10 +59,15 @@ class Detector:
             alert = Alert(
                 alert_type="SYN Flood",
                 description=f"{total_syn_ack} SYN-ACK flags compared to {established} established connections recently",
-                packet_info=None
+                packet_info=None,
+                timestamp=datetime.now(),
+                source_ip=None,
+                dest_ip=None,
+                severity=Severity.HIGH
             )
             self.alerts.append(alert)
-            
+            if not self.is_duplicate_alert(alert):
+                save_alert(alert)
     def detect_dns_tunneling(self, statistics: TrafficStatistics):
         for ip, dns_stats in statistics.dns_statistics.items():
             if (
@@ -66,9 +79,27 @@ class Detector:
                 alert = Alert(
                     alert_type="DNS Tunnelling",
                     description=f"Potential DNS Tunnelling attempt by ip address {ip}",
-                    packet_info=None
+                    packet_info=None,
+                    timestamp=datetime.now(),
+                    source_ip=ip,
+                    dest_ip=None,
+                    severity=Severity.HIGH
                 )
                 self.alerts.append(alert)
-
+                if not self.is_duplicate_alert(alert):
+                    save_alert(alert)
     def get_alerts(self):
         return self.alerts
+
+    def is_duplicate_alert(self, new_alert: Alert):
+        for alert in self.alerts:
+            if (
+                alert.alert_type == new_alert.alert_type
+                and alert.source_ip == new_alert.source_ip
+                and alert.destination_ip == new_alert.destination_ip
+                and alert.description == new_alert.description
+                and alert.severity == new_alert.severity
+                and alert.acknowledged == False
+            ):
+                return True
+        return False
