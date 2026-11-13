@@ -2,11 +2,11 @@ import threading
 import time
 import argparse
 
-from detector import Detector
-from sniffer import sniff_packet
-from analyzer import analyze_packet
-from statistics import TrafficStatistics
-from connection_tracker import ConnectionTracker
+from .detector import Detector
+from .sniffer import sniff_packet
+from .analyzer import analyze_packet
+from .statistics import TrafficStatistics
+from .connection_tracker import ConnectionTracker
 
 CONNECTION_TIMEOUT = 20  # seconds
 

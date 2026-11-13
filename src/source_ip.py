@@ -1,4 +1,4 @@
-from packet_info import PacketInfo
+from .packet_info import PacketInfo
 import time
 from collections import deque
 

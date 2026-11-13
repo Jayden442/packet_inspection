@@ -1,5 +1,5 @@
 from scapy.sendrecv import sniff
-from analyzer import analyze_packet
+from .analyzer import analyze_packet
 
 
 def sniff_packet(statistics_callback, connection_tracker_callback):

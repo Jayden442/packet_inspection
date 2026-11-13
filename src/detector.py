@@ -1,6 +1,6 @@
-from alert import Alert
-from statistics import TrafficStatistics, DNSStatistics
-from connection_tracker import ConnectionTracker, ConnectionState
+from .alert import Alert
+from .statistics import TrafficStatistics, DNSStatistics
+from .connection_tracker import ConnectionTracker, ConnectionState
 
 CONNECTION_THRESHOLD = 100
 QUERY_THRESHOLD = 50

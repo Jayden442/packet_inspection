@@ -1,6 +1,6 @@
-from packet_info import PacketInfo
+from .packet_info import PacketInfo
 from collections import deque, Counter
-from source_ip import SourceIP
+from .source_ip import SourceIP
 import time
 import math
 
@@ -159,3 +159,24 @@ class TrafficStatistics:
     def get_source_ips(self):
         self.remove_outdated_packets()
         return list(self.ips.values())
+    
+    def get_detailed_summary(self):
+        self.remove_outdated_packets()
+        summary = {}
+        for ip, source_ip in self.ips.items():
+            dns_stats = self.dns_statistics.get(ip)
+            summary[ip] = {
+                "packet_count": source_ip.packet_count,
+                "dest_ports": list(source_ip.dest_ports),
+                "average_query_length": dns_stats.average_query_length if dns_stats else 0,
+                "unique_subdomains": dns_stats.unique_subdomains if dns_stats else 0,
+                "average_subdomain_entropy": dns_stats.average_subdomain_entropy if dns_stats else 0
+            }
+        return summary
+    
+    def get_short_summary(self):
+        return {
+            "total_packets": self.get_num_packets(),
+            "unique_source_ips": len(self.ips),
+            "time_window": self.time_window   
+        }
