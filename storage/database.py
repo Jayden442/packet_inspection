@@ -32,6 +32,19 @@ def initialize_database():
             CREATE INDEX IF NOT EXISTS idx_alerts_timestamp
             ON alerts(timestamp)
         """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS traffic_statistics (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp TEXT NOT NULL,
+                total_packets INTEGER NOT NULL,
+                total_bytes INTEGER NOT NULL,
+                unique_source_ips INTEGER NOT NULL,
+                TCP_connections INTEGER NOT NULL,
+                UDP_connections INTEGER NOT NULL,
+                ICMP_connections INTEGER NOT NULL,
+                DNS_queries INTEGER NOT NULL
+            )
+        """)
 
         conn.execute("PRAGMA journal_mode=WAL")
 
@@ -78,3 +91,19 @@ def change_alert_acknowledgement(alert_id, acknowledge=True):
             WHERE id = ?
         """, (int(acknowledge), alert_id))
         return conn.rowcount > 0  # Returns True if an alert was updated, False otherwise
+
+def save_traffic_statistics(statistics):
+    with get_connection() as conn:
+        conn.execute("""
+            INSERT INTO traffic_statistics (timestamp, total_packets, total_bytes, unique_source_ips, TCP_connections, UDP_connections, ICMP_connections, DNS_queries)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            statistics.timestamp.isoformat(),
+            statistics.total_packets,
+            statistics.total_bytes,
+            statistics.unique_source_ips,
+            statistics.TCP_connections,
+            statistics.UDP_connections,
+            statistics.ICMP_connections,
+            statistics.DNS_queries
+        ))
