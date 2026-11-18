@@ -4,6 +4,8 @@ from fastapi import FastAPI
 from .state import traffic_statistics
 from src.analyzer import analyze_packet
 from scapy.all import AsyncSniffer
+from app.loop import snapshot_loop, retention_loop
+import asyncio
 import storage.database as db
 # Create FastAPI app instance
 
@@ -18,10 +20,15 @@ async def lifespan(app: FastAPI):
     db.initialize_database()  # Initialize the database
 
     sniffer.start()
+    snapshot_task = asyncio.create_task(snapshot_loop())
+    retention_task = asyncio.create_task(retention_loop())
 
     try:
         yield
     finally:
+        snapshot_task.cancel()
+        retention_task.cancel()
+        await asyncio.gather(snapshot_task, retention_task, return_exceptions=True)
         if sniffer.running:
             sniffer.stop()
 

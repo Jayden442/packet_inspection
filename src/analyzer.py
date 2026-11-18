@@ -72,5 +72,6 @@ def analyze_packet(packet):
         icmp_code=icmp_code,
         dns_is_response=dns_is_response,
         dns_query=dns_query,
-        dns_query_length=dns_query_length
+        dns_query_length=dns_query_length,
+        packet_length=len(packet)
     )

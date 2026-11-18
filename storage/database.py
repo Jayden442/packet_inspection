@@ -33,17 +33,27 @@ def initialize_database():
             ON alerts(timestamp)
         """)
         conn.execute("""
-            CREATE TABLE IF NOT EXISTS traffic_statistics (
+            CREATE TABLE IF NOT EXISTS statistics (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 timestamp TEXT NOT NULL,
-                total_packets INTEGER NOT NULL,
-                total_bytes INTEGER NOT NULL,
-                unique_source_ips INTEGER NOT NULL,
-                TCP_connections INTEGER NOT NULL,
-                UDP_connections INTEGER NOT NULL,
-                ICMP_connections INTEGER NOT NULL,
-                DNS_queries INTEGER NOT NULL
-            )
+                interval_seconds INTEGER NOT NULL,
+
+                total_packets INTEGER DEFAULT 0,
+                total_bytes INTEGER DEFAULT 0,
+
+                tcp_packets INTEGER DEFAULT 0,
+                udp_packets INTEGER DEFAULT 0,
+                icmp_packets INTEGER DEFAULT 0,
+
+                unique_source_ips INTEGER DEFAULT 0,
+                unique_destination_ips INTEGER DEFAULT 0,
+
+                syn_packets INTEGER DEFAULT 0,
+                dns_queries INTEGER DEFAULT 0
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_statistics_timestamp
+            ON statistics(timestamp);
         """)
 
         conn.execute("PRAGMA journal_mode=WAL")
@@ -92,18 +102,25 @@ def change_alert_acknowledgement(alert_id, acknowledge=True):
         """, (int(acknowledge), alert_id))
         return conn.rowcount > 0  # Returns True if an alert was updated, False otherwise
 
-def save_traffic_statistics(statistics):
+def save_statistics(statistics):
     with get_connection() as conn:
         conn.execute("""
-            INSERT INTO traffic_statistics (timestamp, total_packets, total_bytes, unique_source_ips, TCP_connections, UDP_connections, ICMP_connections, DNS_queries)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO statistics (
+                timestamp, interval_seconds, total_packets, total_bytes,
+                tcp_packets, udp_packets, icmp_packets,
+                unique_source_ips, unique_destination_ips,
+                syn_packets, dns_queries
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             statistics.timestamp.isoformat(),
+            statistics.interval_seconds,
             statistics.total_packets,
             statistics.total_bytes,
+            statistics.tcp_packets,
+            statistics.udp_packets,
+            statistics.icmp_packets,
             statistics.unique_source_ips,
-            statistics.TCP_connections,
-            statistics.UDP_connections,
-            statistics.ICMP_connections,
-            statistics.DNS_queries
+            statistics.unique_destination_ips,
+            statistics.syn_packets,
+            statistics.dns_queries
         ))

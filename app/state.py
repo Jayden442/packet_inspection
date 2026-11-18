@@ -1,3 +1,3 @@
-from src.statistics import TrafficStatistics, PacketInfo
+from src.statistics import TrafficStatistics
 traffic_statistics = TrafficStatistics()
 

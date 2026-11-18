@@ -25,3 +25,5 @@ class PacketInfo:
     dns_query: str | None = None
     dns_query_length: int | None = None
     dns_is_response: bool | None = None
+    
+    packet_length: int | None = None
