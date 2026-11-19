@@ -1,12 +1,15 @@
 import asyncio
-from src.history import make_snapshot
+from .state import interval_stats
 from storage.retention import cleanup_old_records
 
 
 async def snapshot_loop():
+    
     while True:
         await asyncio.sleep(60)
-        await asyncio.to_thread(make_snapshot)
+        print("Taking snapshot")
+        await asyncio.to_thread(interval_stats.make_snapshot)
+        print("Snapshot done")
 
 
 async def retention_loop():

@@ -6,11 +6,11 @@ def cleanup_old_records():
     now = datetime.now(timezone.utc)
 
     alert_cutoff = (
-        now - timedelta(days=90)
+        now - timedelta(days=60)
     ).isoformat()
 
     statistics_cutoff = (
-        now - timedelta(days=90)
+        now - timedelta(days=60)
     ).isoformat()
 
     with get_connection() as conn:

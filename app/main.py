@@ -1,7 +1,9 @@
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from http.client import HTTPException
 from fastapi import FastAPI
-from .state import traffic_statistics
+from .state import traffic_statistics, interval_stats
 from src.analyzer import analyze_packet
 from scapy.all import AsyncSniffer
 from app.loop import snapshot_loop, retention_loop
@@ -32,24 +34,53 @@ async def lifespan(app: FastAPI):
         if sniffer.running:
             sniffer.stop()
 
+def normalize_datetime(dt: datetime, assumed_timezone=ZoneInfo("America/Toronto")):
+    if dt.tzinfo is None or dt.tzinfo.utcoffset(dt) is None:
+        return dt.replace(tzinfo=assumed_timezone).astimezone(timezone.utc)
+
+    return dt.astimezone(timezone.utc).isoformat()
+        
+
 app = FastAPI(lifespan=lifespan)
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the NIDS API!"}
 
-@app.get("/stats")
+@app.get("/statistics")
 def get_short_stats():
     return traffic_statistics.get_short_summary()
 
-@app.get("/stats/detailed")
+@app.get("/statistics/detailed")
 def get_long_stats():
     return traffic_statistics.get_detailed_summary()
 
 @app.get("/alerts")
-def get_alerts(limit: int = 100, severity: str = None, alert_type: str = None, acknowledged: bool = None):
-    limit = max(1, min(limit, 250))  # Ensure limit is between 1 and 250
-    alerts = db.get_alerts(limit=limit, severity=severity, alert_type=alert_type, acknowledged=acknowledged)
-    return {"alerts": alerts}
+def get_alerts(limit: int = 100, severity: str = None, alert_type: str = None, acknowledged: bool = None, start=None, end=None):
+    start = normalize_datetime(start) if start else None
+    end = normalize_datetime(end) if end else None
+    if start and end and start > end:
+        raise HTTPException(
+            status_code=400,
+            detail="Start must be earlier than end"
+        )
+    return db.get_alerts(
+        limit=limit,
+        severity=severity,
+        alert_type=alert_type,
+        acknowledged=acknowledged,
+        start=start,
+        end=end
+    )
+
+@app.get("/alerts/{alert_id}")
+def retrieve_alert(alert_id: int):
+    alert = db.get_alert_by_id(alert_id)
+    if alert is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Alert not found"
+        )
+    return alert
 
 @app.patch("/alerts/{alert_id}/acknowledge")
 def acknowledge_alert(alert_id: int):
@@ -71,8 +102,33 @@ def unacknowledge_alert(alert_id: int):
             status_code=404,
             detail="Alert not found"
         )
+
+@app.get("/statistics/summary")
+def statistics_summary(start: datetime, end: datetime):
+    start = normalize_datetime(start)
+    end = normalize_datetime(end)
+    if start > end:
+        raise HTTPException(
+            status_code=400,
+            detail="Start must be earlier than end"
+        )
+    return db.get_statistics_summary(start, end)
+
+@app.get("/statistics/history")
+def get_statistics_history(start: datetime, end: datetime, limit=250):
+    start = normalize_datetime(start)
+    end = normalize_datetime(end)
+    if start > end:
+        raise HTTPException(
+            status_code=400,
+            detail="Start must be earlier than end"
+        )
+    return db.get_statistics_timeframe(start, end, limit)
+
 def process_packet(packet):
     packet_info = analyze_packet(packet)
     if packet_info is not None:
         traffic_statistics.add_packet(packet_info)
+        interval_stats.add_packet(packet_info)
+
         

@@ -2,7 +2,7 @@ from .alert import Alert, Severity
 from .statistics import TrafficStatistics, DNSStatistics
 from .connection_tracker import ConnectionTracker, ConnectionState
 from .storage.database import save_alert
-from time import datetime
+from datetime import datetime, timezone
 
 CONNECTION_THRESHOLD = 100
 QUERY_THRESHOLD = 50
@@ -28,7 +28,7 @@ class Detector:
                         alert_type="Port Scan",
                         description=f"{num_ports} unique destination ports accessed by {source_ip.ip_address}",
                         packet_info=None,
-                        timestamp=datetime.now(),
+                        timestamp=datetime.now(timezone.utc).isoformat(),
                         source_ip=source_ip.ip_address,
                         dest_ip=None,
                         severity=Severity.MEDIUM,
