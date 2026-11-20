@@ -1,6 +1,7 @@
 from .packet_info import PacketInfo
 from collections import deque, Counter
 from .source_ip import SourceIP
+from .history import IntervalStatistics
 import time
 import math
 
@@ -99,9 +100,6 @@ class DNSStatistics:
     @property
     def unique_subdomains(self):
         return len(self.subdomain_counter)
-
-            
-
 
 class TrafficStatistics:
     def __init__(self,time_window=10):

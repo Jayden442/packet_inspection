@@ -60,7 +60,7 @@ class Detector:
                 alert_type="SYN Flood",
                 description=f"{total_syn_ack} SYN-ACK flags compared to {established} established connections recently",
                 packet_info=None,
-                timestamp=datetime.now(),
+                timestamp=datetime.now(timezone.utc).isoformat(),
                 source_ip=None,
                 dest_ip=None,
                 severity=Severity.HIGH
@@ -80,7 +80,7 @@ class Detector:
                     alert_type="DNS Tunnelling",
                     description=f"Potential DNS Tunnelling attempt by ip address {ip}",
                     packet_info=None,
-                    timestamp=datetime.now(),
+                    timestamp=datetime.now(timezone.utc).isoformat(),
                     source_ip=ip,
                     dest_ip=None,
                     severity=Severity.HIGH
