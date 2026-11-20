@@ -125,7 +125,6 @@ def get_statistics_timeframe(start, end, limit=250):
             ORDER BY timestamp ASC
             LIMIT ?
             """, (start, end, limit)).fetchall()
-        print([dict(row) for row in rows])
         return [dict(row) for row in rows]
 
 def get_statistics_summary(start, end):
@@ -143,11 +142,6 @@ def get_statistics_summary(start, end):
             WHERE timestamp >= ?
             AND timestamp <= ?
         """, (start, end)).fetchone()
-        random = conn.execute("SELECT * FROM statistics").fetchone()
-        print(dict(random))
-        print(f"{start!r}")
-        print(f"{end!r}")
-        print(dict(row))
         return dict(row)
 
 def save_statistics(snapshot):
