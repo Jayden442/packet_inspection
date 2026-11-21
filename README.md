@@ -92,7 +92,7 @@ packet_inspection/
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone <https://github.com/Jayden442/packet_inspection.git>
 cd packet_inspection
 ```
 

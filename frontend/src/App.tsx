@@ -4,6 +4,7 @@ import type { TrafficRecord } from "./services/api";
 import { getTrafficHistory } from "./services/api";
 import TrafficChart from "./components/TrafficChart";
 import MetricCard from "./components/MetricCard";
+import Alerts from "./components/Alerts";
 
 function App() {
   const [records, setRecords] = useState<TrafficRecord[]>([]);
@@ -137,7 +138,7 @@ function App() {
                 </section>
 
                 {/* Placeholder sections */}
-                <section className="content-section">
+                <section className="traffic-summary">
                     <h2>Traffic Overview</h2>
 
                     {loading && records.length === 0 ? (
@@ -154,9 +155,9 @@ function App() {
                     )}
                 </section>
 
-                <section className="content-section">
+                <section className="alert-summary">
                     <h2>Recent Alerts</h2>
-                    <p>Recent security alerts will appear here.</p>
+                    <Alerts/>
                 </section>
 
             </main>

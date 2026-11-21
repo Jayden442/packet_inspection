@@ -1,0 +1,124 @@
+/* Alerts panel */
+.alerts-container {
+    margin-top: 24px;
+    padding: 20px;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+}
+
+/* Panel heading */
+.alerts-container h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.4rem;
+    color: #1e293b;
+}
+
+/* Individual alert */
+.alert {
+    padding: 16px;
+    margin-bottom: 12px;
+    border: 1px solid #e2e8f0;
+    border-left: 5px solid #94a3b8;
+    border-radius: 8px;
+    background-color: #f8fafc;
+}
+
+/* Alert title */
+.alert h3 {
+    margin: 0 0 8px 0;
+    font-size: 1rem;
+    color: #1e293b;
+}
+
+/* Alert description */
+.alert p {
+    margin: 0 0 12px 0;
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+.alert-high {
+    border-left-color: #ef4444;
+}
+
+.alert-medium {
+    border-left-color: #f59e0b;
+}
+
+.alert-low {
+    border-left-color: #22c55e;
+}
+
+/* Alert summary layout */
+.alert-summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+/* Individual summary cards */
+.summary-card {
+    display: flex;
+    flex-direction: column;
+    padding: 14px;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+/* Summary labels */
+.summary-label {
+    font-size: 0.85rem;
+    color: #64748b;
+}
+
+/* Summary numbers */
+.summary-value {
+    margin-top: 6px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #1e293b;
+}
+
+/* Severity colours */
+.high-text {
+    color: #dc2626;
+}
+
+.medium-text {
+    color: #d97706;
+}
+
+.low-text {
+    color: #16a34a;
+}
+
+/* Severity badge - shared styling */
+.severity {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+/* High severity */
+.severity-high {
+    color: #991b1b;
+    background-color: #fee2e2;
+}
+
+/* Medium severity */
+.severity-medium {
+    color: #92400e;
+    background-color: #fef3c7;
+}
+
+/* Low severity */
+.severity-low {
+    color: #166534;
+    background-color: #dcfce7;
+}
