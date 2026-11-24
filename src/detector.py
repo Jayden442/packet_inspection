@@ -31,7 +31,7 @@ class Detector:
                         timestamp=datetime.now(timezone.utc).isoformat(),
                         source_ip=source_ip.ip_address,
                         dest_ip=None,
-                        severity=Severity.MEDIUM,
+                        severity="MEDIUM"
                     )
                     self.alerts.append(alert)
                     if not self.is_duplicate_alert(alert):
@@ -63,7 +63,7 @@ class Detector:
                 timestamp=datetime.now(timezone.utc).isoformat(),
                 source_ip=None,
                 dest_ip=None,
-                severity=Severity.HIGH
+                severity="HIGH"
             )
             self.alerts.append(alert)
             if not self.is_duplicate_alert(alert):
@@ -83,7 +83,7 @@ class Detector:
                     timestamp=datetime.now(timezone.utc).isoformat(),
                     source_ip=ip,
                     dest_ip=None,
-                    severity=Severity.HIGH
+                    severity="HIGH"
                 )
                 self.alerts.append(alert)
                 if not self.is_duplicate_alert(alert):
